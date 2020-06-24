@@ -1,4 +1,5 @@
 import time
+import os
 from absl import app, flags, logging
 from absl.flags import FLAGS
 import core.utils as utils
@@ -12,6 +13,8 @@ import tensorflow as tf
 flags.DEFINE_string('framework', 'tf', '(tf, tflite')
 flags.DEFINE_string('weights', './data/yolov4.weights',
                     'path to weights file')
+flags.DEFINE_string('saved_model_path', './yolov4_lp/',
+                    'path to saved model')
 flags.DEFINE_integer('size', 608, 'resize images to')
 flags.DEFINE_boolean('tiny', False, 'yolo or yolo-tiny')
 flags.DEFINE_string('model', 'yolov4', 'yolov3 or yolov4')
@@ -19,6 +22,7 @@ flags.DEFINE_string('image', './data/kite.jpg', 'path to input image')
 flags.DEFINE_string('output', 'result.png', 'path to output image')
 
 def main(_argv):
+    os.makedirs(FLAGS.saved_model_path, exist_ok=True)
     if FLAGS.tiny:
         STRIDES = np.array(cfg.YOLO.STRIDES_TINY)
         ANCHORS = utils.get_anchors(cfg.YOLO.ANCHORS_TINY, FLAGS.tiny)
@@ -99,6 +103,12 @@ def main(_argv):
     # image.save()
     image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
     cv2.imwrite(FLAGS.output, image)
+
+    print("ANCHORS: ", ANCHORS)
+    print("STRIDES: ", STRIDES)
+    print("XYSCALE: ", XYSCALE)
+    # tf.keras.models.save_model(model, f"{FLAGS.saved_model_path}/yolov4.h5")
+    model.save(f"{FLAGS.saved_model_path}/yolov4.h5")
 
 if __name__ == '__main__':
     try:
